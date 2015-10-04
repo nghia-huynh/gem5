@@ -26,3 +26,10 @@
 *.exe
 *.out
 *.app
+
+# Python executable
+*.pyc
+
+# gem5 temp directories
+build/
+m5out/
