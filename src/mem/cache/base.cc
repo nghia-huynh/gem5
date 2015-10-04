@@ -44,15 +44,16 @@
  * @file
  * Definition of BaseCache functions.
  */
+#include "mem/cache/base.hh"
 
 #include "debug/Cache.hh"
 #include "debug/Drain.hh"
-#include "mem/cache/tags/fa_lru.hh"
-#include "mem/cache/tags/lru.hh"
-#include "mem/cache/tags/random_repl.hh"
-#include "mem/cache/base.hh"
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
+#include "mem/cache/tags/fa_lru.hh"
+#include "mem/cache/tags/lru.hh"
+#include "mem/cache/tags/nmru.hh"
+#include "mem/cache/tags/random_repl.hh"
 #include "sim/full_system.hh"
 
 using namespace std;
@@ -794,7 +795,24 @@ BaseCache::drain(DrainManager *dm)
 BaseCache *
 BaseCacheParams::create()
 {
+    unsigned numSets = size / (assoc * system->cacheLineSize());
+
     assert(tags);
 
-    return new Cache(this);
+    if (dynamic_cast<FALRU*>(tags)) {
+        if (numSets != 1)
+            fatal("Got FALRU tags with more than one set\n");
+        return new Cache<FALRU>(this);
+    } else if (dynamic_cast<LRU*>(tags)) {
+        if (numSets == 1)
+            warn("Consider using FALRU tags for a fully associative cache\n");
+        return new Cache<LRU>(this);
+    } else if (dynamic_cast<RandomRepl*>(tags)) {
+        return new Cache<RandomRepl>(this);
+    } else if (dynamic_cast<NMRU*>(tags)) {
+        return new Cache<NMRU>(this);
+    } else {
+        fatal("No suitable tags selected\n");
+    }
+    //return new Cache(this);
 }

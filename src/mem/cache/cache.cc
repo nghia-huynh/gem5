@@ -40,4 +40,4 @@
 #include "mem/cache/tags/lru.hh"
 #include "mem/cache/tags/random_repl.hh"
 #include "mem/cache/cache_impl.hh"
-
+template class Cache<NMRU>;
